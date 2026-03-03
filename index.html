@@ -97,6 +97,30 @@
 <div id="scoreContainer"></div>
 
 <script>
+    if(localStorage.getItem("quizStarted") === "true" 
+   && localStorage.getItem("quizCompleted") !== "true"){
+
+    document.body.innerHTML = `
+        <div style="
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            background:black;
+            color:red;
+            font-size:40px;
+            font-weight:bold;
+            text-align:center;
+        ">
+            QUIZ TERMINATED ❌<br>
+            Page refresh detected.<br>
+            You cannot restart the quiz.
+        </div>
+    `;
+
+    throw new Error("Quiz terminated due to refresh.");
+}
+
 if(localStorage.getItem("quizCompleted") === "true"){
     document.getElementById("quizBox").style.display = "none";
     document.getElementById("scoreContainer").style.display = "block";
@@ -398,8 +422,20 @@ function finishQuiz(){
         "<p>You cannot retake this quiz.</p>";
 
     localStorage.setItem("quizCompleted", "true");
+    localStorage.removeItem("quizStarted");
 }
 
+
+const startBtn = document.getElementById("startBtn");
+const instructionBox = document.getElementById("instructionBox");
+
+startBtn.onclick = function(){
+    localStorage.setItem("quizStarted", "true"); // mark as started
+    instructionBox.style.display = "none";
+    questionEl.style.display = "block";
+    optionsEl.style.display = "block";
+    loadQuestion();
+};
 document.addEventListener("visibilitychange", function() {
     if (document.hidden) {
         document.body.innerHTML = `
@@ -421,16 +457,6 @@ document.addEventListener("visibilitychange", function() {
         `;
     }
 });
-const startBtn = document.getElementById("startBtn");
-const instructionBox = document.getElementById("instructionBox");
-
-startBtn.onclick = function(){
-    instructionBox.style.display = "none";
-    questionEl.style.display = "block";
-    optionsEl.style.display = "block";
-    loadQuestion();
-};
-
 shuffleArray(quiz);
 
 
