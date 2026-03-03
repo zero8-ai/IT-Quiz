@@ -64,16 +64,23 @@
 
 
 <div class="quiz-container" id="quizBox">
-    <h2>Advanced Database Integration & Cloud Technologies Quiz</h2>
-<!-- Instructions -->
-<div id="instructionBox" style="
+    <!-- Name Entry Section -->
+<div id="nameBox" style="
     background: rgba(255,255,255,0.1);
-    padding:15px;
+    padding:20px;
     border-radius:10px;
     margin-bottom:20px;
-    font-size:14px;
-    text-align:left;
 ">
+    <h3>Enter Your Name Before Starting</h3>
+    <input type="text" id="studentName" placeholder="Enter your full name"
+        style="padding:10px; width:80%; border-radius:5px; border:none; margin-top:10px;">
+    
+    <br><br>
+    <button id="continueBtn" style="background:#9b59b6;">Continue</button>
+</div>
+    <h2>Advanced Database Integration & Cloud Technologies Quiz</h2>
+<!-- Instructions -->
+<div id="instructionBox" style="display:none; background: rgba(255,255,255,0.1); padding:15px; border-radius:10px; margin-bottom:20px; font-size:14px; text-align:left;">
     <h3>📌 General Instructions</h3>
     <ul>
         <li>Read each question carefully.</li>
@@ -97,8 +104,30 @@
 <div id="scoreContainer"></div>
 
 <script>
-    if(localStorage.getItem("quizStarted") === "true" 
+    if(localStorage.getItem("quizTerminated") === "true"){
+    document.body.innerHTML = `
+        <div style="
+            display:flex;
+            justify-content:center;
+            align-items:center;
+            height:100vh;
+            background:black;
+            color:red;
+            font-size:40px;
+            font-weight:bold;
+            text-align:center;
+        ">
+            ACCESS DENIED ❌<br>
+            You are permanently blocked from this quiz.
+        </div>
+    `;
+    throw new Error("Blocked permanently.");
+}
+
+if(localStorage.getItem("quizStarted") === "true" 
    && localStorage.getItem("quizCompleted") !== "true"){
+
+    localStorage.setItem("quizTerminated", "true"); // permanent block
 
     document.body.innerHTML = `
         <div style="
@@ -114,11 +143,10 @@
         ">
             QUIZ TERMINATED ❌<br>
             Page refresh detected.<br>
-            You cannot restart the quiz.
+            You are permanently blocked.
         </div>
     `;
-
-    throw new Error("Quiz terminated due to refresh.");
+    throw new Error("Quiz terminated.");
 }
 
 if(localStorage.getItem("quizCompleted") === "true"){
@@ -414,10 +442,14 @@ nextBtn.onclick = () => {
 };
 
 function finishQuiz(){
+
+    const name = localStorage.getItem("studentName");
+
     document.getElementById("quizBox").style.display = "none";
     document.getElementById("scoreContainer").style.display = "block";
     document.getElementById("scoreContainer").innerHTML =
         "<h2>Quiz Completed</h2>" +
+        "<p><strong>Name:</strong> " + name + "</p>" +
         "<p>Your Total Correct Score: <strong>" + score + " / 20</strong></p>" +
         "<p>You cannot retake this quiz.</p>";
 
@@ -437,7 +469,10 @@ startBtn.onclick = function(){
     loadQuestion();
 };
 document.addEventListener("visibilitychange", function() {
-    if (document.hidden) {
+    if (document.hidden && localStorage.getItem("quizStarted") === "true") {
+
+        localStorage.setItem("quizTerminated", "true");
+
         document.body.innerHTML = `
             <div style="
                 display:flex;
@@ -450,13 +485,32 @@ document.addEventListener("visibilitychange", function() {
                 font-weight:bold;
                 text-align:center;
             ">
-                CHEATER ❌<br>
-                You minimized or switched tabs.<br>
-                Quiz terminated.
+                QUIZ TERMINATED ❌<br>
+                Tab switching detected.<br>
+                You are permanently blocked.
             </div>
         `;
     }
 });
+
+const continueBtn = document.getElementById("continueBtn");
+const nameBox = document.getElementById("nameBox");
+const studentNameInput = document.getElementById("studentName");
+
+continueBtn.onclick = function(){
+
+    const name = studentNameInput.value.trim();
+
+    if(name === ""){
+        alert("Please enter your name before continuing.");
+        return;
+    }
+
+    localStorage.setItem("studentName", name); // save name
+
+    nameBox.style.display = "none";
+    instructionBox.style.display = "block";
+};
 shuffleArray(quiz);
 
 
